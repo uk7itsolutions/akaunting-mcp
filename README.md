@@ -146,6 +146,8 @@ Add the following to your MCP client configuration (e.g. Claude Desktop's `claud
 | `list_documents` | List invoices and bills, filtered by type or search |
 | `get_document` | Get full details for a single document, including line items |
 | `create_document` | Create an invoice or bill from line items |
+| `update_document` | Update an invoice or bill (loads current values, overlays your changes) |
+| `delete_document` | Delete an invoice or bill by ID |
 | `list_transactions` | List income and expense payments |
 | `create_transaction` | Record an income or expense payment |
 | `list_accounts` | List financial accounts (bank, cash, etc.) |

@@ -6,6 +6,7 @@ use App\Mcp\Tools\CreateContactTool;
 use App\Mcp\Tools\CreateDocumentTool;
 use App\Mcp\Tools\CreateItemTool;
 use App\Mcp\Tools\CreateTransactionTool;
+use App\Mcp\Tools\DeleteDocumentTool;
 use App\Mcp\Tools\GetContactTool;
 use App\Mcp\Tools\GetDocumentTool;
 use App\Mcp\Tools\ListAccountsTool;
@@ -18,6 +19,7 @@ use App\Mcp\Tools\ListItemsTool;
 use App\Mcp\Tools\ListTaxesTool;
 use App\Mcp\Tools\ListTransactionsTool;
 use App\Mcp\Tools\UpdateContactTool;
+use App\Mcp\Tools\UpdateDocumentTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -38,6 +40,8 @@ class AkauntingServer extends Server
         ListDocumentsTool::class,
         GetDocumentTool::class,
         CreateDocumentTool::class,
+        UpdateDocumentTool::class,
+        DeleteDocumentTool::class,
         ListTransactionsTool::class,
         CreateTransactionTool::class,
         ListAccountsTool::class,
