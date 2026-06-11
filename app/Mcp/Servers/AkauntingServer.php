@@ -28,7 +28,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Akaunting')]
 #[Version('1.0.0')]
-#[Instructions('Manage accounting in Akaunting 3.1.21: customers and vendors (contacts), items, invoices and bills (documents), income and expenses (transactions), plus reference data such as accounts, categories, taxes and currencies. Akaunting is multi-company; use list_companies to discover company IDs. When creating records, fetch the relevant reference IDs first (list_accounts, list_categories, list_currencies).')]
+#[Instructions('Manage accounting in Akaunting 3.1.21: customers and vendors (contacts), items, invoices and bills (documents), income and expenses (transactions), plus reference data such as accounts, categories, taxes and currencies. Akaunting is multi-company; use list_companies to discover company IDs. When creating records, fetch the relevant reference IDs first (list_accounts, list_categories, list_currencies). Documents (invoices and bills) cannot be cancelled through the API; if asked to cancel one, use the cancel_document tool, which explains why and points to the Akaunting web UI Cancel button or delete_document.')]
 class AkauntingServer extends Server
 {
     protected array $tools = [
