@@ -147,7 +147,7 @@ Add the following to your MCP client configuration (e.g. Claude Desktop's `claud
 | `get_document` | Get full details for a single document, including line items |
 | `create_document` | Create an invoice or bill from line items |
 | `update_document` | Update an invoice or bill (loads current values, overlays your changes) |
-| `cancel_document` | Cancel an invoice or bill (sets status to "cancelled") |
+| `cancel_document` | Explains that cancelling isn't supported via the API and suggests the web UI Cancel button or `delete_document` |
 | `delete_document` | Delete an invoice or bill by ID |
 | `list_transactions` | List income and expense payments |
 | `create_transaction` | Record an income or expense payment |
