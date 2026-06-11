@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List currencies configured in the company. Use these codes when creating contacts, documents and transactions.')]
-class ListCurrenciesTool extends Tool
+class ListCurrenciesTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -21,7 +21,7 @@ class ListCurrenciesTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         return Response::text(json_encode($this->client->get('currencies', ['limit' => $request->get('limit', 50)])));
     }

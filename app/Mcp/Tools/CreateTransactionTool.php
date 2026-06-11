@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('Record a transaction: an income payment (money received) or an expense payment (money paid out).')]
-class CreateTransactionTool extends Tool
+class CreateTransactionTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -31,7 +31,7 @@ class CreateTransactionTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $data = [
             'type'           => $request->get('type'),

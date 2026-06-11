@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List the companies this user can access. Use a company "id" as the X-Company-ID header (or AKAUNTING_COMPANY_ID) to choose which company the other tools operate on.')]
-class ListCompaniesTool extends Tool
+class ListCompaniesTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -21,7 +21,7 @@ class ListCompaniesTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         return Response::text(json_encode($this->client->get('companies', ['limit' => $request->get('limit', 50)])));
     }

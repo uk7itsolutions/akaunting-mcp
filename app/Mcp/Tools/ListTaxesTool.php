@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List tax rates. Use these IDs as tax_ids on document line items.')]
-class ListTaxesTool extends Tool
+class ListTaxesTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -21,7 +21,7 @@ class ListTaxesTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         return Response::text(json_encode($this->client->get('taxes', ['limit' => $request->get('limit', 50)])));
     }

@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List categories, optionally filtered by type. Use these IDs on items, documents and transactions.')]
-class ListCategoriesTool extends Tool
+class ListCategoriesTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -22,7 +22,7 @@ class ListCategoriesTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $params = ['limit' => $request->get('limit', 50)];
 
