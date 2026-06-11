@@ -5,7 +5,6 @@ namespace App\Mcp\Servers;
 use App\Mcp\Tools\CreateContactTool;
 use App\Mcp\Tools\CreateDocumentTool;
 use App\Mcp\Tools\CreateItemTool;
-use App\Mcp\Tools\CancelDocumentTool;
 use App\Mcp\Tools\CreateTransactionTool;
 use App\Mcp\Tools\DeleteDocumentTool;
 use App\Mcp\Tools\GetContactTool;
@@ -42,7 +41,6 @@ class AkauntingServer extends Server
         GetDocumentTool::class,
         CreateDocumentTool::class,
         UpdateDocumentTool::class,
-        CancelDocumentTool::class,
         DeleteDocumentTool::class,
         ListTransactionsTool::class,
         CreateTransactionTool::class,
