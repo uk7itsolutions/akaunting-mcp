@@ -40,9 +40,9 @@ class AkauntingClient
         return $this->request('put', $path, ['json' => $data, 'query' => $query]);
     }
 
-    public function delete(string $path): void
+    public function delete(string $path, array $query = []): void
     {
-        $this->request('delete', $path);
+        $this->request('delete', $path, ['query' => $query]);
     }
 
     private function request(string $method, string $path, array $options = []): mixed
