@@ -9,7 +9,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Create a document (invoice or bill) from line items. Akaunting recalculates the final totals from the items; this tool fills in the contact name and an estimated amount automatically.')]
+#[Description('Create a document (invoice or bill) from line items. Akaunting computes the totals from the items; this tool resolves the contact name automatically.')]
 class CreateDocumentTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
@@ -38,13 +38,6 @@ class CreateDocumentTool extends AkauntingTool
             return Response::error('Invalid input (not an Akaunting or connection error): "items" must be a non-empty JSON array of line items.');
         }
 
-        // Akaunting requires an amount; it recalculates the real totals from the
-        // line items on save, so the line subtotal is sufficient for validation.
-        $amount = 0;
-        foreach ($items as $item) {
-            $amount += (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
-        }
-
         $type = $request->get('type');
 
         // contact_name is required by the API; resolve it from the contact.
@@ -66,7 +59,11 @@ class CreateDocumentTool extends AkauntingTool
             'due_at'          => $this->normalizeDate($request->get('due_at')),
             'status'          => $request->get('status', 'draft'),
             'document_number' => $request->get('document_number') ?: $this->generateNumber($type),
-            'amount'          => $amount,
+            // Akaunting derives the total by ADDING the line-item total to the
+            // amount we send (CreateDocumentItemsAndTotals: $amount += $actual_total).
+            // It must be 0 — sending the subtotal here doubles the document total.
+            // 'amount' is validated as `required`, which an integer 0 satisfies.
+            'amount'          => 0,
             'items'           => $items,
         ];
 
