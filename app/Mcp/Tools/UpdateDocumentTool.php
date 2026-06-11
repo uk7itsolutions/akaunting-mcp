@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Tools\Concerns\InteractsWithDocuments;
 use App\Services\AkauntingClient;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -11,6 +12,8 @@ use Laravel\Mcp\Server\Attributes\Description;
 #[Description('Update an existing document (invoice or bill). Akaunting replaces the whole document, so this tool loads the current values and overlays only the fields you pass. Omit "items" to keep the existing line items.')]
 class UpdateDocumentTool extends AkauntingTool
 {
+    use InteractsWithDocuments;
+
     public function __construct(private readonly AkauntingClient $client) {}
 
     public function schema(JsonSchema $schema): array
@@ -96,66 +99,5 @@ class UpdateDocumentTool extends AkauntingTool
         $data['notes'] = $request->has('notes') ? $request->get('notes') : ($doc['notes'] ?? null);
 
         return Response::text(json_encode($this->client->put("documents/{$id}", $data, ['search' => 'type:'.$type])));
-    }
-
-    /**
-     * Rebuild the create-style items array from an existing document response.
-     * The API resource does not expose quantity, so derive it from total/price.
-     *
-     * @param  array<string, mixed>  $doc
-     * @return array<int, array<string, mixed>>
-     */
-    private function rebuildItems(array $doc): array
-    {
-        $rawItems = $doc['items']['data'] ?? ($doc['items'] ?? []);
-
-        $rebuilt = [];
-
-        foreach ((array) $rawItems as $it) {
-            $price = (float) ($it['price'] ?? 0);
-            $total = (float) ($it['total'] ?? 0);
-
-            $line = [
-                'name'     => $it['name'] ?? '',
-                'quantity' => $price != 0.0 ? round($total / $price, 4) : 1,
-                'price'    => $price,
-            ];
-
-            if (! empty($it['item_id'])) {
-                $line['item_id'] = $it['item_id'];
-            }
-
-            if (! empty($it['description'])) {
-                $line['description'] = $it['description'];
-            }
-
-            $taxIds = [];
-            foreach ((array) ($it['taxes']['data'] ?? $it['taxes'] ?? []) as $tax) {
-                if (! empty($tax['tax_id'])) {
-                    $taxIds[] = $tax['tax_id'];
-                }
-            }
-
-            if ($taxIds !== []) {
-                $line['tax_ids'] = $taxIds;
-            }
-
-            $rebuilt[] = $line;
-        }
-
-        return $rebuilt;
-    }
-
-    private function dateOnly(string $value): string
-    {
-        // Existing dates come back ISO-8601 (e.g. 2026-06-11T00:00:00+00:00);
-        // keep just the date part for normalizeDate.
-        return substr(trim($value), 0, 10);
-    }
-
-    private function normalizeDate(string $value): string
-    {
-        // Akaunting validates date_format:Y-m-d H:i:s exactly.
-        return strlen(trim($value)) === 10 ? trim($value).' 00:00:00' : trim($value);
     }
 }
