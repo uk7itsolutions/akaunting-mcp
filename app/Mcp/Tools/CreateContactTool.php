@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('Create a contact (customer or vendor).')]
-class CreateContactTool extends Tool
+class CreateContactTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -29,7 +29,7 @@ class CreateContactTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $data = ['enabled' => 1];
 
@@ -39,6 +39,11 @@ class CreateContactTool extends Tool
             }
         }
 
-        return Response::text(json_encode($this->client->post('contacts', $data)));
+        // Akaunting resolves the create permission from the type in the query
+        // string (type:customer -> create-sales-customers). Without it the
+        // permission check is malformed and returns 403.
+        $query = ['search' => 'type:'.$request->get('type')];
+
+        return Response::text(json_encode($this->client->post('contacts', $data, $query)));
     }
 }

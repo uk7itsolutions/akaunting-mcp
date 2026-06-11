@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Exceptions\AkauntingApiException;
+use App\Exceptions\AkauntingConnectionException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class AkauntingClient
 {
@@ -24,14 +25,19 @@ class AkauntingClient
         return $this->request('get', $path, ['query' => $params]);
     }
 
-    public function post(string $path, array $data): mixed
+    /**
+     * @param  array  $query  Extra query-string params. Akaunting derives the
+     *   required permission for contacts/documents from a "search=type:..."
+     *   param, so write calls to those endpoints must pass it here too.
+     */
+    public function post(string $path, array $data, array $query = []): mixed
     {
-        return $this->request('post', $path, ['json' => $data]);
+        return $this->request('post', $path, ['json' => $data, 'query' => $query]);
     }
 
-    public function put(string $path, array $data): mixed
+    public function put(string $path, array $data, array $query = []): mixed
     {
-        return $this->request('put', $path, ['json' => $data]);
+        return $this->request('put', $path, ['json' => $data, 'query' => $query]);
     }
 
     public function delete(string $path): void
@@ -79,10 +85,7 @@ class AkauntingClient
                 'duration_ms' => $this->elapsedMs($startedAt),
             ]);
 
-            throw new RuntimeException(
-                "Could not reach Akaunting at ".config('akaunting.base_url').": {$e->getMessage()}",
-                previous: $e,
-            );
+            throw new AkauntingConnectionException(config('akaunting.base_url'), $e->getMessage(), $e);
         }
 
         $durationMs = $this->elapsedMs($startedAt);
@@ -103,8 +106,11 @@ class AkauntingClient
                 'duration_ms' => $durationMs,
             ]);
 
-            throw new RuntimeException(
-                "Akaunting API error {$response->status()}: {$response->body()}"
+            throw new AkauntingApiException(
+                $response->status(),
+                $response->body(),
+                strtoupper($method),
+                $path,
             );
         }
 

@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('Create an item (product or service) with sale and/or purchase prices.')]
-class CreateItemTool extends Tool
+class CreateItemTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -26,7 +26,7 @@ class CreateItemTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $data = [
             'name'           => $request->get('name'),

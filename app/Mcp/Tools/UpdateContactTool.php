@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('Update fields on an existing contact. Only the fields you pass are changed.')]
-class UpdateContactTool extends Tool
+class UpdateContactTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -30,13 +30,18 @@ class UpdateContactTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $id = $request->get('contact_id');
 
+        // Akaunting derives the API permission from type:... in the query string.
+        // Use the caller's type as a hint for the initial read (defaulting to
+        // customer), then the contact's real type for the write.
+        $typeHint = $request->get('type', 'customer');
+
         // Akaunting PUT replaces the record, so start from the current values and
         // overlay the provided changes.
-        $current = $this->client->get("contacts/{$id}");
+        $current = $this->client->get("contacts/{$id}", ['search' => 'type:'.$typeHint]);
         $data = is_array($current) && isset($current['data']) ? $current['data'] : (array) $current;
 
         foreach (['name', 'type', 'email', 'currency_code', 'phone', 'tax_number', 'website', 'address', 'reference'] as $field) {
@@ -45,6 +50,8 @@ class UpdateContactTool extends Tool
             }
         }
 
-        return Response::text(json_encode($this->client->put("contacts/{$id}", $data)));
+        $writeType = $data['type'] ?? $typeHint;
+
+        return Response::text(json_encode($this->client->put("contacts/{$id}", $data, ['search' => 'type:'.$writeType])));
     }
 }

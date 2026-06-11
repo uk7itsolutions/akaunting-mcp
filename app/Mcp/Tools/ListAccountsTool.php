@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List financial accounts (bank accounts, cash, etc.). Use these IDs when recording transactions.')]
-class ListAccountsTool extends Tool
+class ListAccountsTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -21,7 +21,7 @@ class ListAccountsTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         return Response::text(json_encode($this->client->get('accounts', ['limit' => $request->get('limit', 50)])));
     }

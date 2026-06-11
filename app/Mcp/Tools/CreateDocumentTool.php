@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('Create a document (invoice or bill) from line items. Akaunting recalculates the final totals from the items; this tool fills in the contact name and an estimated amount automatically.')]
-class CreateDocumentTool extends Tool
+class CreateDocumentTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -30,12 +30,12 @@ class CreateDocumentTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $items = json_decode($request->get('items'), true);
 
         if (! is_array($items) || $items === []) {
-            return Response::text('Error: "items" must be a non-empty JSON array of line items.');
+            return Response::error('Invalid input (not an Akaunting or connection error): "items" must be a non-empty JSON array of line items.');
         }
 
         // Akaunting requires an amount; it recalculates the real totals from the
@@ -45,11 +45,14 @@ class CreateDocumentTool extends Tool
             $amount += (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
         }
 
-        // contact_name is required by the API; resolve it from the contact.
-        $contact = $this->client->get('contacts/'.$request->get('contact_id'));
-        $contactData = is_array($contact) && isset($contact['data']) ? $contact['data'] : (array) $contact;
-
         $type = $request->get('type');
+
+        // contact_name is required by the API; resolve it from the contact.
+        // Akaunting needs type:... in the query string to resolve permissions:
+        // an invoice's contact is a customer, a bill's contact is a vendor.
+        $contactType = $type === 'bill' ? 'vendor' : 'customer';
+        $contact = $this->client->get('contacts/'.$request->get('contact_id'), ['search' => 'type:'.$contactType]);
+        $contactData = is_array($contact) && isset($contact['data']) ? $contact['data'] : (array) $contact;
 
         $data = [
             'type'            => $type,
@@ -71,7 +74,8 @@ class CreateDocumentTool extends Tool
             $data['notes'] = $request->get('notes');
         }
 
-        return Response::text(json_encode($this->client->post('documents', $data)));
+        // type:invoice -> create-sales-invoices, type:bill -> create-purchases-bills.
+        return Response::text(json_encode($this->client->post('documents', $data, ['search' => 'type:'.$type])));
     }
 
     private function normalizeDate(string $value): string

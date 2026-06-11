@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List items (products and services).')]
-class ListItemsTool extends Tool
+class ListItemsTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -22,7 +22,7 @@ class ListItemsTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $params = ['limit' => $request->get('limit', 25)];
 

@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List transactions (income and expense payments), optionally filtered by type or search.')]
-class ListTransactionsTool extends Tool
+class ListTransactionsTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -23,7 +23,7 @@ class ListTransactionsTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
         $terms = [];
 

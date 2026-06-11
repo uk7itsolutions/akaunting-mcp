@@ -10,7 +10,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
 #[Description('List contacts (customers and vendors), optionally filtered by type or a free-text search.')]
-class ListContactsTool extends Tool
+class ListContactsTool extends AkauntingTool
 {
     public function __construct(private readonly AkauntingClient $client) {}
 
@@ -23,24 +23,38 @@ class ListContactsTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    protected function execute(Request $request): Response
     {
-        $terms = [];
+        $limit = $request->get('limit', 25);
+        $search = $request->has('search') ? $request->get('search') : null;
 
+        // A type is mandatory: Akaunting derives the API permission from
+        // type:... in the search string, so a typeless request is always 403.
         if ($request->has('type')) {
-            $terms[] = 'type:'.$request->get('type');
+            return Response::text(json_encode($this->fetch($request->get('type'), $search, $limit)));
         }
 
-        if ($request->has('search')) {
-            $terms[] = $request->get('search');
+        // No type given: query both kinds and merge so "all contacts" works.
+        $all = [];
+        foreach (['customer', 'vendor'] as $type) {
+            $result = $this->fetch($type, $search, $limit);
+            $all = array_merge($all, (is_array($result) && isset($result['data'])) ? $result['data'] : []);
         }
 
-        $params = ['limit' => $request->get('limit', 25)];
+        return Response::text(json_encode(['data' => $all]));
+    }
 
-        if ($terms) {
-            $params['search'] = implode(' ', $terms);
+    private function fetch(string $type, ?string $search, int $limit): mixed
+    {
+        $terms = ['type:'.$type];
+
+        if ($search !== null && $search !== '') {
+            $terms[] = $search;
         }
 
-        return Response::text(json_encode($this->client->get('contacts', $params)));
+        return $this->client->get('contacts', [
+            'limit'  => $limit,
+            'search' => implode(' ', $terms),
+        ]);
     }
 }
